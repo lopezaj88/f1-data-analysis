@@ -5,36 +5,80 @@ past_analysis_script.py- Analyzes the performance of drivers at a specified circ
 """
 
 __author__ = "Austin Lopez"
-__version__ = "1.5"
-__email__ = "formulas.for.f1@gmail.com"
-__status__ = "Production"
+__version__ = "1.2"
+__email__ = "lopezaj88@gmail.com"
+__status__ = "Testing"
 
-# Import Modules
-import fastf1 as ff1
-import fastf1.plotting as f1plot
-from matplotlib import pyplot as plt
+import fastf1
+from fastf1 import plotting
+import matplotlib.pyplot as plt
 
-# Define variables
-year = 2023
-location = 'Qatar'
-ses = 'R'
-mclaren = ['NOR', 'PIA']
-ferrari = ['SAI', 'LEC']
-redBull = ['VER', 'PER']
-mercedes = ['HAM', 'RUS']
-astonMartin = ['ALO', 'STR']
-haas = ['HUL', 'MAG']
-alpine = ['GAS', 'OCO']
-vcarb = ['TSU']
-williams = ['ALB']
-sauber = ['BOT', 'ZHO']
-teams = [mclaren, ferrari, redBull, mercedes, astonMartin, haas, alpine, vcarb, williams, sauber]
-cache = 'Cache_Qatar_2023'
+# Enable cache for FastF1 to speed up future data retrievals
+fastf1.Cache.enable_cache('f1_cache')  # Specify a directory for caching data
 
-# Enable Cache and set up plotting
-#ff1.Cache.enable_cache(cache)
-f1plot.setup_mpl(color_scheme='fastf1', misc_mpl_mods=False)
+def fetch_race_data(year, grand_prix):
+    try:
+        # Load the session data
+        race = fastf1.get_session(year, grand_prix, 'R')  # 'R' stands for the Race session
+        race.load()
+        
+        # Summary of results
+        print("\n--- Race Results ---")
+        for result in race.results:
+            print(f"Driver: {result['FullName']} | Team: {result['TeamName']} | Position: {result['Position']} | Points: {result['Points']}")
 
-# Load session data
-race = ff1.get_session(year, location, ses)
-race.load()
+        # Scoring Points
+        print("\n--- Points Scored ---")
+        scoring = [res for res in race.results if res['Points'] > 0]
+        for driver in scoring:
+            print(f"{driver['FullName']} scored {driver['Points']} points.")
+
+        # Non-scoring Drivers
+        print("\n--- Non-scoring Drivers ---")
+        non_scoring = [res for res in race.results if res['Points'] == 0]
+        for driver in non_scoring:
+            print(driver['FullName'])
+
+        # Fastest Driver
+        fastest_driver = race.laps.pick_fastest()
+        print(f"\nFastest Lap: {fastest_driver['Driver']} with a lap time of {fastest_driver['LapTime']}")
+        print("Fastest lap details:")
+        print(fastest_driver)
+
+        # Check if the fastest lap was influenced by a pit stop
+        fastest_driver_pit = race.laps[race.laps['Driver'] == fastest_driver['Driver']]
+        if not fastest_driver_pit.empty:
+            pit_stops = fastest_driver_pit['PitInLap'].unique()
+            print(f"{fastest_driver['Driver']} pit stops sequence: { pit_stops }")
+        
+        # Weather data
+        print("\n--- Weather Data ---")
+        weather = race.weather_data
+        for time, data in weather.iterrows():
+            print(f"Time: {time} | Air Temp: {data['AirTemp']}°C | Track Temp: {data['TrackTemp']}°C | Humidity: {data['Humidity']}% | Wind: {data['WindSpeed']} m/s, {data['WindDirection']}° | Rainfall: {data['Rainfall']} mm")
+
+        # Race events
+        print("\n--- Race Events ---")
+        events = race.event_data
+        for event in events:
+            print(f"Time: {event['Time']} | Event: {event['Event']}")
+
+        # Count specific events
+        yellow_flags = [e for e in events if 'Yellow Flag' in e['Event']]
+        red_flags = [e for e in events if 'Red Flag' in e['Event']]
+        safety_cars = [e for e in events if 'Safety Car' in e['Event']]
+        virtual_safety_cars = [e for e in events if 'Virtual Safety Car' in e['Event']]
+        restarts = [e for e in events if 'Restart' in e['Event']]
+
+        print(f"\nYellow Flags: {len(yellow_flags)}")
+        print(f"Red Flags: {len(red_flags)}")
+        print(f"Safety Cars: {len(safety_cars)}")
+        print(f"Virtual Safety Cars: {len(virtual_safety_cars)}")
+        print(f"Restarts: {len(restarts)}")
+
+    except Exception as e:
+        print(f"An error occurred: {e}")
+
+# Example usage
+fetch_race_data(2023, 'British Grand Prix')  # Replace year and GP name with the desired race
+
