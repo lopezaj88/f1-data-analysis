@@ -9,29 +9,42 @@ __version__ = "1.2"
 __email__ = "lopezaj88@gmail.com"
 __status__ = "Testing"
 
-import fastf1
+import fastf1 as ff1
 from fastf1 import plotting
 import matplotlib.pyplot as plt
 
 # Enable cache for FastF1 to speed up future data retrievals
-fastf1.Cache.enable_cache('f1_cache')  # Specify a directory for caching data
+#ff1.Cache.enable_cache('f1_cache')  # Specify a directory for caching data
 
 def fetch_race_data(year, grand_prix):
     try:
         # Load the session data
-        race = fastf1.get_session(year, grand_prix, 'R')  # 'R' stands for the Race session
+        race = ff1.get_session(year, grand_prix, 'R')  
         race.load()
+        
+        # Create a list of drivers
+        driverNumbers = race.drivers
+        drivers = [race.get_driver(number)['Abbreviation'] for number in driverNumbers]
         
         # Summary of results
         print("\n--- Race Results ---")
-        for result in race.results:
-            print(f"Driver: {result['FullName']} | Team: {result['TeamName']} | Position: {result['Position']} | Points: {result['Points']}")
+        for driver in drivers:
+            driverName = race.get_driver(driver)['FullName']
+            teamName = race.get_driver(driver)['TeamName']
+            position = race.get_driver(driver)['Position']
+            status = race.get_driver(driver)['Status']
+            points = race.get_driver(driver)['Points']
+            
+            print(f'Driver: {driverName} | Team: {teamName} | Position: {position} | Status: {status} | Points: | {points}')
+
 
         # Scoring Points
         print("\n--- Points Scored ---")
-        scoring = [res for res in race.results if res['Points'] > 0]
-        for driver in scoring:
-            print(f"{driver['FullName']} scored {driver['Points']} points.")
+        for driver in drivers:
+            scoring = race.get_driver(driver)['Points']
+            if scoring > 0:
+                print(f'Driver {driver} | Points {scoring}')
+                
 
         # Non-scoring Drivers
         print("\n--- Non-scoring Drivers ---")
@@ -80,5 +93,5 @@ def fetch_race_data(year, grand_prix):
         print(f"An error occurred: {e}")
 
 # Example usage
-fetch_race_data(2023, 'British Grand Prix')  # Replace year and GP name with the desired race
+fetch_race_data(2024, 'Qatar')  
 
