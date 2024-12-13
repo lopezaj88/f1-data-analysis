@@ -29,40 +29,27 @@ def fetch_race_data(year, grand_prix):
         # Summary of results
         print("\n--- Race Results ---")
         for driver in drivers:
-            driverName = race.get_driver(driver)['FullName']
             teamName = race.get_driver(driver)['TeamName']
             position = race.get_driver(driver)['Position']
             status = race.get_driver(driver)['Status']
             points = race.get_driver(driver)['Points']
             
-            print(f'Driver: {driverName} | Team: {teamName} | Position: {position} | Status: {status} | Points: | {points}')
+            print(f'Driver: {driver} | Team: {teamName} | Position: {position} | Status: {status} | Points: | {points}')
 
 
         # Scoring Points
         print("\n--- Points Scored ---")
-        for driver in drivers:
-            scoring = race.get_driver(driver)['Points']
-            if scoring > 0:
-                print(f'Driver {driver} | Points {scoring}')
-                
+        for driver in drivers[:10]:
+            print(f'Driver: {driver} | Position: {race.get_driver(driver)['Position']} | Points: {race.get_driver(driver)['Points']}')
 
         # Non-scoring Drivers
         print("\n--- Non-scoring Drivers ---")
-        non_scoring = [res for res in race.results if res['Points'] == 0]
-        for driver in non_scoring:
-            print(driver['FullName'])
+        for driver in drivers[10:]:
+            print(f'Driver: {driver} | Position: {race.get_driver(driver)['Position']} | Status: {race.get_driver(driver)['Status']}')
 
-        # Fastest Driver
-        fastest_driver = race.laps.pick_fastest()
-        print(f"\nFastest Lap: {fastest_driver['Driver']} with a lap time of {fastest_driver['LapTime']}")
-        print("Fastest lap details:")
-        print(fastest_driver)
-
-        # Check if the fastest lap was influenced by a pit stop
-        fastest_driver_pit = race.laps[race.laps['Driver'] == fastest_driver['Driver']]
-        if not fastest_driver_pit.empty:
-            pit_stops = fastest_driver_pit['PitInLap'].unique()
-            print(f"{fastest_driver['Driver']} pit stops sequence: { pit_stops }")
+        # Fastest Lap
+        fastestLap = race.laps.pick_fastest()
+        print(f'\n--- Fastest lap details --- \nDriver: {fastestLap['Driver']} \nTime: {fastestLap['LapTime']} \nCompound: {fastestLap['Compound']} \nTyre Life: {fastestLap['TyreLife']} \nFresh Tyre: {fastestLap['FreshTyre']}')
         
         # Weather data
         print("\n--- Weather Data ---")
@@ -93,5 +80,5 @@ def fetch_race_data(year, grand_prix):
         print(f"An error occurred: {e}")
 
 # Example usage
-fetch_race_data(2024, 'Qatar')  
+fetch_race_data(2024, 'Sao Paulo')  
 
